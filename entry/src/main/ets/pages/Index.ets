@@ -8,7 +8,6 @@ struct Index {
   amplificationFunction?: (x: number) => number
   @BuilderParam item: (item: listDataSource, index: number) => void = this.placeholderElements
 
-
   aboutToAppear(): void {
     // 创建原始数据
     this.vm.dataSource = Array.from<undefined, listDataSource>({ length: 5 }, (v, i) => {
@@ -47,7 +46,6 @@ struct Index {
 
     return newArr
   }
-
 
   handleScrollStop() {
     const listLength = this.vm.listLength
@@ -105,6 +103,15 @@ struct Index {
             unit: LengthUnit.VP
           }
         })
+
+      if (this.vm.listStartIndex === 0) {
+        this.vm.scroller.fling(1200)
+      }
+
+      if (this.vm.listEndIndex === this.vm.loopList.length - 1) {
+        this.vm.scroller.fling(-1200)
+      }
+
     })
 
     promptAction.showToast({ message: '列表切换了' })
@@ -112,11 +119,11 @@ struct Index {
 
   // 获取位于中间的第一个item下标
   getListCenterIndex() {
-    return Math.floor(this.vm.loopList.length / this.vm.listLength / 2)
+    return Math.floor(this.vm.loopList.length / this.vm.listLength / 2) * this.vm.listLength
   }
 
   @Builder
-  placeholderElements(item: listDataSource, index: number){
+  placeholderElements(item: listDataSource, index: number) {
     Text('Item' + item.index + '\n' + this.vm.listItemEffectAttributeArray[index]?.magnify?.toFixed(2))
       .height(100)
       .aspectRatio(0.56)
@@ -139,7 +146,6 @@ struct Index {
       })
   }
 
-
   build() {
     Column() {
 
@@ -147,7 +153,7 @@ struct Index {
         ForEach(this.vm.loopList, (item: listDataSource, index) => {
           ListItem() {
             Column() {
-              this.item?.(item,index)
+              this.item?.(item, index)
             }
             .justifyContent(FlexAlign.Center)
             .height(150)
@@ -169,7 +175,7 @@ struct Index {
             const width = nv.width as number
 
             this.vm.listItemEffectAttributeArray[index] =
-              new DockEffectsProperties(this.amplificationFunction?.(posX + width/2))
+              new DockEffectsProperties(this.amplificationFunction?.(posX + width / 2))
           })
         })
       }
@@ -180,6 +186,8 @@ struct Index {
       .listDirection(Axis.Horizontal)
       .edgeEffect(EdgeEffect.None)
       .onScrollIndex((start, end, center) => {
+        this.vm.listStartIndex = start
+        this.vm.listEndIndex = end
         this.vm.listCenterIndex = center
       })
       .onSizeChange((ov, nv) => {
@@ -198,6 +206,12 @@ struct Index {
       .onScrollStart(() => {
       })
       .onScrollStop(() => this.handleScrollStop())
+
+
+      Button("滚动")
+        .onClick(() => {
+          this.vm.scroller.fling(1200)
+        })
     }
     .justifyContent(FlexAlign.Center)
     .height('100%')
@@ -261,7 +275,6 @@ class DockEffectsProperties implements IDockEffectsProperties {
 }
 
 
-
 @ObservedV2
 class IndexViewModel {
   @Trace listItemEffectAttributeArray: DockEffectsProperties[] = []
@@ -272,10 +285,12 @@ class IndexViewModel {
   listSize?: SizeOptions
   listLength: number = 0
   listCenterIndex: number = -1
+  listStartIndex: number = -1
+  listEndIndex: number = -1
   listItemArea: Area[] = []
   amplificationFunction?: (x: number) => number
 
-  vmInit(){
+  vmInit() {
     // 获得原始数组长度
     this.listLength = this.dataSource.length
 
