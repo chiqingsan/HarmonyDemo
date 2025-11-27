@@ -104,13 +104,15 @@ struct Index {
           }
         })
 
-      if (this.vm.listStartIndex === 0) {
-        this.vm.scroller.fling(1200)
-      }
+      setTimeout(() => {
+        if (this.vm.listStartIndex === 0) {
+          this.vm.scroller.fling(1200)
+        }
 
-      if (this.vm.listEndIndex === this.vm.loopList.length - 1) {
-        this.vm.scroller.fling(-1200)
-      }
+        if (this.vm.listEndIndex === this.vm.loopList.length - 1) {
+          this.vm.scroller.fling(-1200)
+        }
+      })
 
     })
 
